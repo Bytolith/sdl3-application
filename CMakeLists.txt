@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 project(app LANGUAGES CXX)
 
-# Use C++20 for modern features
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 

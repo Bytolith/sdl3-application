@@ -5,9 +5,22 @@ struct Vec3 {
 	float x,y,z;
 };
 
+struct Vec3i {
+	int x,y,z;
+};
+
 struct Vec2 {
 	float x,y;
 };
+
+struct Vec2i {
+	int x,y;
+};
+
+struct Grid{
+	int columns, rows;
+};
+
 
 struct Rect {
 	float x, y, w, h;

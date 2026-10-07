@@ -1,4 +1,5 @@
 #include <SDL3/SDL.h>
+#include <cstdlib>
 #include <string>
 
 #include "renderer.h"
@@ -33,11 +34,14 @@ int main(/*int argc, char* argv[]*/) {
     SDL_Event event;
 	Vec2 dir = {0,0};
 	Vec2 pos = {100, 150};
+	int frame = 0;
 
 	Uint64 last_time = SDL_GetTicksNS();
 	float delta_time = 0.0f;
 
 	TextBox tb = TextBox(50,50,100,100,"Hello");
+
+	r.LoadTexture("assets/Green-Cap-Character-16x18.png");
     while (running) {
 		Uint64 current_time = SDL_GetTicksNS();
 		delta_time = (float)(current_time-last_time) / 1000000000.0f;
@@ -51,10 +55,10 @@ int main(/*int argc, char* argv[]*/) {
 			{
 				switch(event.key.key){
 					case SDLK_ESCAPE: running = false; break;
-					case SDLK_W:      dir.y = -1.0f;   break;
-					case SDLK_S:      dir.y =  1.0f;   break;
-					case SDLK_A:      dir.x = -1.0f;   break;
-					case SDLK_D:      dir.x =  1.0f;   break;
+					case SDLK_W: dir.y = -1.0f;   break;
+					case SDLK_S: dir.y =  1.0f;   break;
+					case SDLK_A: dir.x = -1.0f;   break;
+					case SDLK_D: dir.x =  1.0f;   break;
 				}
 			}
 			if (event.type == SDL_EVENT_KEY_UP){
@@ -69,37 +73,46 @@ int main(/*int argc, char* argv[]*/) {
 		pos.x += dir.x * 100 * delta_time;
 		pos.y += dir.y * 100 * delta_time;
 
+		if(abs(dir.x) > abs(dir.y)){
+			(dir.x <= 0) ? frame=6 : frame=9;
+		}
+		else{
+			(dir.y <= 0) ? frame=3 : frame=0;
+		}
+
 		r.RenderBackground(BLACK);
 
-		// SDL_FRect sourceRect;
-		// sourceRect.x = 0.0f;
-		// sourceRect.y = 0.0f;
-		// sourceRect.w = 16.0f;
-		// sourceRect.h = 18.0f;
-		//
-		// SDL_FRect destinationRect;
-		// destinationRect.x = pos.x;
-		// destinationRect.y = pos.y;
-		// destinationRect.w = 16.0f * scale;
-		// destinationRect.h = 18.0f * scale;
-
-		// SDL_SetRenderDrawColor(renderer, WHITE);
-
-		for(int x = 75; x < width-100; x+=60){
-			for(int y = 75; y < height-100; y+=60){
+		for(int x = 75; x < WIDTH-100; x+=60){
+			for(int y = 75; y < HEIGHT-100; y+=60){
 				r.RenderRect(x,y,50,50,GREY);
 			}
 		}
 
 		tb.render(r);
+
 		int scale = 2;
-		r.RenderTexture({pos.x,pos.y,16.0f * scale, 18.0f * scale}, "assets/Green-Cap-Character-16x18.png");
+		Rect destRect = {pos.x, pos.y, 16.0f * scale, 18.0f * scale};
+		r.RenderTextureTile(destRect, {3,4}, frame, "Green-Cap-Character-16x18.png");
+
+		// destRect.x += 16;
+
+		//Render Atlas By Tiles
+		// int ii = 0;
+		// for (int y = 0; y < 4; y++) {
+		// 	for (int x = 0; x < 3; x++){
+		// 		r.RenderTextureTile(destRect, {3,4}, ii, "Green-Cap-Character-16x18.png");
+		// 		r.RenderDebugText(destRect.x, destRect.y, to_string(ii));
+		// 		destRect.x += 16 * scale;
+		// 		ii++;
+		// 	}
+		// 	destRect.x = pos.x;
+		// 	destRect.y += 18 * scale;
+		// }
+
 		r.RenderDebugText(20,20,"Delta Time (ms): " + to_string(delta_time * 1000.0f));
 
 		r.Present();
-
     }
-	r.Destroy();
     SDL_Quit();
 
     return 0;
