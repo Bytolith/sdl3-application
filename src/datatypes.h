@@ -21,7 +21,6 @@ struct Grid{
 	int columns, rows;
 };
 
-
 struct Rect {
 	float x, y, w, h;
 };

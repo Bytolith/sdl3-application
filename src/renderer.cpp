@@ -1,6 +1,5 @@
 #include "renderer.h"
 #include <SDL3/SDL_render.h>
-#include <cmath>
 
 Renderer::~Renderer(){
 	Destroy();

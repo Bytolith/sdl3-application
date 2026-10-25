@@ -12,4 +12,3 @@ make
 ## Asset Sources
 Test Sprite (CC0)
 https://opengameart.org/content/green-cap-character-16x18
-

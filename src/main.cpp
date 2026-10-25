@@ -25,9 +25,7 @@ struct TextBox{
 
 int main(/*int argc, char* argv[]*/) {
 	Renderer r;
-	if (r.Initialize() != 0) {
-		return 1;
-	}
+	if (r.Initialize() != 0) return 1;
 
     bool running = true;
 
@@ -35,6 +33,8 @@ int main(/*int argc, char* argv[]*/) {
 	Vec2 dir = {0,0};
 	Vec2 pos = {100, 150};
 	int frame = 0;
+
+	bool key_w = false, key_s = false, key_a = false, key_d = false;
 
 	Uint64 last_time = SDL_GetTicksNS();
 	float delta_time = 0.0f;
@@ -55,21 +55,25 @@ int main(/*int argc, char* argv[]*/) {
 			{
 				switch(event.key.key){
 					case SDLK_ESCAPE: running = false; break;
-					case SDLK_W: dir.y = -1.0f;   break;
-					case SDLK_S: dir.y =  1.0f;   break;
-					case SDLK_A: dir.x = -1.0f;   break;
-					case SDLK_D: dir.x =  1.0f;   break;
+					case SDLK_W: key_w = true; break;
+					case SDLK_S: key_s = true; break;
+					case SDLK_A: key_a = true; break;
+					case SDLK_D: key_d = true; break;
 				}
 			}
 			if (event.type == SDL_EVENT_KEY_UP){
 				switch(event.key.key){
-					case SDLK_W: if (dir.y < 0) dir.y = 0.0f; break;
-					case SDLK_S: if (dir.y > 0) dir.y = 0.0f; break;
-					case SDLK_A: if (dir.x < 0) dir.x = 0.0f; break;
-					case SDLK_D: if (dir.x > 0) dir.x = 0.0f; break;
+					case SDLK_W: key_w = false; break;
+					case SDLK_S: key_s = false; break;
+					case SDLK_A: key_a = false; break;
+					case SDLK_D: key_d = false; break;
 				}
 			}
         }
+
+		dir.x = (key_d ? 1.0f : 0.0f) - (key_a ? 1.0f : 0.0f);
+		dir.y = (key_s ? 1.0f : 0.0f) - (key_w ? 1.0f : 0.0f);
+
 		pos.x += dir.x * 100 * delta_time;
 		pos.y += dir.y * 100 * delta_time;
 
@@ -114,6 +118,5 @@ int main(/*int argc, char* argv[]*/) {
 		r.Present();
     }
     SDL_Quit();
-
     return 0;
 }
