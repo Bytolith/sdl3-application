@@ -1,10 +1,9 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-#include <iostream>
 #include <string>
 #include <unordered_map>
-#include <cmath>
+#include <print>
 
 #include <SDL3/SDL.h>
 
@@ -37,13 +36,13 @@ class Renderer {
 		//Texture Ops
 		void LoadTexture(const string& img_path);
 		void UnloadTexture(const string& key);
+		void UnloadAllTextures();
 		
 		void RenderBackground(Color color);
 		void RenderRect(float x, float y, float w, float h, Color color);
 		void RenderRect(Rect r, Color color);
 		void RenderTexture(Rect r, const string& key);
 		void RenderTextureTile(Rect r, Grid grid, int index, const string& key);
-
 		void RenderDebugText(float x, float y, const string& str, Color color = WHITE);
 
 		void Present();

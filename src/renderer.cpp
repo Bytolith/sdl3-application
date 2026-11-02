@@ -1,5 +1,5 @@
 #include "renderer.h"
-#include <SDL3/SDL_render.h>
+#include <SDL3/SDL_rect.h>
 
 Renderer::~Renderer(){
 	Destroy();
@@ -12,14 +12,14 @@ int Renderer::Initialize(){
 
 	window = SDL_CreateWindow("SDL3 Application", WIDTH, HEIGHT, 0);
 	if (!window) {
-		std::cerr << "Failed to create window! SDL_Error: " << SDL_GetError() << std::endl;
+		println(stderr, "Failed to create window! SDL_Error: ", SDL_GetError());
 		SDL_Quit();
 		return -1;
 	}
 
 	renderer = SDL_CreateRenderer(window, nullptr);
 	if (!renderer) {
-		std::cerr << "Failed to create renderer! SDL_Error: " << SDL_GetError() << std::endl;
+		println(stderr, "Failed to create renderer! SDL_Error: ", SDL_GetError());
 		SDL_DestroyWindow(window);
 		window = nullptr;
 		SDL_Quit();
@@ -30,6 +30,8 @@ int Renderer::Initialize(){
 }
 
 void Renderer::Destroy(){
+	UnloadAllTextures();
+
 	if (renderer) {
 		SDL_DestroyRenderer(renderer);
 		renderer = nullptr;
@@ -38,10 +40,7 @@ void Renderer::Destroy(){
 		SDL_DestroyWindow(window);
 		window = nullptr;
 	}
-	for(const auto& [key, value] : textures) {
-		UnloadTexture(key);
-    }
-    if(RENDERER_DEBUG) std::cout << "[RENDERER] Resources Freed" << "\n";
+    if(RENDERER_DEBUG) println("[RENDERER] Resources Freed");
 }
 
 void Renderer::SetDrawColor(Color color){
@@ -52,7 +51,7 @@ void Renderer::SetDrawColor(Color color){
 void Renderer::LoadTexture(const string& img_path){
 	SDL_Surface* surface = SDL_LoadPNG(img_path.c_str());
 	if (!surface) {
-		std::cerr << "Failed to load PNG! SDL_Error: " << SDL_GetError() << std::endl;
+		println(stderr, "Failed to load PNG! SDL_Error: ", SDL_GetError());
 	}
 	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
 	if (texture){
@@ -69,22 +68,31 @@ void Renderer::LoadTexture(const string& img_path){
 
 	//If Exists
 	if(textures.count(filename) > 0){
-		cout << filename << " is already loaded" << endl;
+		println("{} is already loaded", filename);
 		return;
 	}
 	
 	auto result = textures.insert_or_assign(filename, texture);
 	if(result.second){
-    	if(RENDERER_DEBUG) std::cout << "[RENDERER] Loading Texture: " << filename << "\n";
+		if(RENDERER_DEBUG) println("[RENDERER] Loading Texture: {}", filename);
 	}
 	else{
 		SDL_DestroyTexture(texture);
 	}
 }
 void Renderer::UnloadTexture(const string& key){
-    if(RENDERER_DEBUG) std::cout << "[RENDERER] Unloading Texture: " << key << "\n";
+	if(RENDERER_DEBUG) println("[RENDERER] Unloading Texture: {}" , key);
 	SDL_DestroyTexture(textures.at(key));
 	textures.erase(key);
+}
+
+void Renderer::UnloadAllTextures(){
+	if(RENDERER_DEBUG) println("[RENDERER] Unloading All Textures: ");
+	for(const auto& [key, value] : textures) {
+		if(RENDERER_DEBUG) println("[RENDERER] Unloading Texture: {}" , key);
+		SDL_DestroyTexture(textures.at(key));
+    }
+	textures.clear();
 }
 		
 void Renderer::RenderBackground(Color color){
@@ -112,7 +120,7 @@ void Renderer::RenderTexture(Rect r, const string& key){
 void Renderer::RenderTextureTile(Rect r, Grid grid, int index, const string& key){
 	auto result = textures.find(key);
 	if(result == textures.end() || !result->second){
-		if(RENDERER_DEBUG) std::cerr << "[RENDERER] Texture not loaded: " << key << "\n";
+		if(RENDERER_DEBUG) println(stderr, "[RENDERER] Texture not loaded: s", key); 
 		return;
 	}
 	SDL_Texture* texture = result->second;
@@ -121,17 +129,17 @@ void Renderer::RenderTextureTile(Rect r, Grid grid, int index, const string& key
 	const int rows = grid.rows;
 
 	if(cols <= 0 || rows <= 0){
-		if(RENDERER_DEBUG) std::cerr << "[RENDERER] Invalid Grid " << cols << "x" << rows << "\n";
+		if(RENDERER_DEBUG) std::println(stderr, "[RENDERER] Invalid Grid {}x{}", cols, rows);
 		return;
 	}
 	if(index < 0 || index >= cols * rows){
-		if(RENDERER_DEBUG) std::cerr << "[RENDERER] Index " << index << " out of bounds for " << cols*rows << " tiles (" << cols << "x" << rows << ")\n";
+		if(RENDERER_DEBUG) println(stderr, "[RENDERER] Index {} out of bounds for {} tiles ({}x{})", index,cols*rows,cols,rows); 
 		return;
 	}
 	
 	float fw, fh;
 	if(!SDL_GetTextureSize(texture, &fw, &fh)){
-		cerr << SDL_GetError() << endl;
+		println(stderr, "Failed to get texure size SDL_Error: ", SDL_GetError());
 		return;
 	}
 
@@ -148,7 +156,8 @@ void Renderer::RenderTextureTile(Rect r, Grid grid, int index, const string& key
 
 void Renderer::RenderDebugText(float x, float y, const string& str, Color color){
 	SetDrawColor(color);
-	SDL_RenderDebugText(renderer, x, y, str.c_str()); }
+	SDL_RenderDebugText(renderer, x, y, str.c_str()); 
+}
 
 void Renderer::Present(){
 	SDL_RenderPresent(renderer);
